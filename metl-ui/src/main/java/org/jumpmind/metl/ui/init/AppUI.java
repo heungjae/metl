@@ -45,7 +45,6 @@ import org.jumpmind.metl.core.util.VersionUtils;
 import org.jumpmind.metl.ui.common.ApplicationContext;
 import org.jumpmind.metl.ui.common.TopBar;
 import org.jumpmind.metl.ui.common.ViewManager;
-import org.jumpmind.metl.ui.init.LoginDialog.LoginListener;
 import org.jumpmind.vaadin.ui.common.ResizableWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,15 +55,6 @@ import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
-import com.vaadin.data.util.converter.Converter;
-import com.vaadin.data.util.converter.DefaultConverterFactory;
-import com.vaadin.data.util.converter.StringToBigDecimalConverter;
-import com.vaadin.data.util.converter.StringToBooleanConverter;
-import com.vaadin.data.util.converter.StringToDateConverter;
-import com.vaadin.data.util.converter.StringToDoubleConverter;
-import com.vaadin.data.util.converter.StringToFloatConverter;
-import com.vaadin.data.util.converter.StringToIntegerConverter;
-import com.vaadin.data.util.converter.StringToLongConverter;
 import com.vaadin.server.DefaultErrorHandler;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.ThemeResource;
@@ -75,20 +65,29 @@ import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.communication.PushMode;
 import com.vaadin.shared.ui.MarginInfo;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextArea;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.v7.data.util.converter.Converter;
+import com.vaadin.v7.data.util.converter.DefaultConverterFactory;
+import com.vaadin.v7.data.util.converter.StringToBigDecimalConverter;
+import com.vaadin.v7.data.util.converter.StringToBooleanConverter;
+import com.vaadin.v7.data.util.converter.StringToDateConverter;
+import com.vaadin.v7.data.util.converter.StringToDoubleConverter;
+import com.vaadin.v7.data.util.converter.StringToFloatConverter;
+import com.vaadin.v7.data.util.converter.StringToIntegerConverter;
+import com.vaadin.v7.data.util.converter.StringToLongConverter;
+import com.vaadin.v7.shared.ui.label.ContentMode;
+import com.vaadin.v7.ui.HorizontalLayout;
+import com.vaadin.v7.ui.Label;
+import com.vaadin.v7.ui.TextArea;
+import com.vaadin.v7.ui.VerticalLayout;
 
 @Theme("apptheme")
 @Title("Metl")
 @PreserveOnRefresh
 @Push(value = PushMode.AUTOMATIC)
-public class AppUI extends UI implements LoginListener {
+public class AppUI extends UI {
 
     private static final long serialVersionUID = 1L;
 
@@ -194,36 +193,7 @@ public class AppUI extends UI implements LoginListener {
         });
 
         Responsive.makeResponsive(this);
-        ApplicationContext appCtx = ctx.getBean(ApplicationContext.class);
-        IOperationsService operationsService = appCtx.getOperationsSerivce();
-        if (operationsService.isUserLoginEnabled()) {
-            LoginDialog login = new LoginDialog(appCtx, this);
-            UI.getCurrent().addWindow(login);
-        } else {
-            User user = operationsService.findUserByLoginId(DEFAULT_USER);
-            if (user == null) {
-                user = new User();
-                user.setLoginId(DEFAULT_USER);
-                operationsService.save(user);
-
-                Group group = operationsService.findGroupByName(DEFAULT_GROUP);
-                if (group == null) {
-                    group = new Group(DEFAULT_GROUP);
-                    user.getGroups().add(group);
-                    operationsService.save(group);
-                    for (Privilege priv : Privilege.values()) {
-                        GroupPrivilege groupPriv = new GroupPrivilege(group.getId(), priv.name());
-                        group.getGroupPrivileges().add(groupPriv);
-                        operationsService.save(groupPriv);
-                    }
-                }
-
-                UserGroup userGroup = new UserGroup(user.getId(), group.getId());
-                operationsService.save(userGroup);
-            }
-            appCtx.setUser(user);
-            login(user);
-        }
+        afterInit();
     }
 
     public static WebApplicationContext getWebApplicationContext() {
@@ -279,11 +249,44 @@ public class AppUI extends UI implements LoginListener {
         }
     }
 
-    @Override
-    public void login(User user) {
+    protected void afterInit() {
+        WebApplicationContext ctx = getWebApplicationContext();
+        ApplicationContext appCtx = ctx.getBean(ApplicationContext.class);
+        IOperationsService operationsService = appCtx.getOperationsService();
+        User user = operationsService.findUserByLoginId(DEFAULT_USER);
+        if (user == null) {
+            user = new User();
+            user.setLoginId(DEFAULT_USER);
+            operationsService.save(user);
+
+            Group group = operationsService.findGroupByName(DEFAULT_GROUP);
+            if (group == null) {
+                group = new Group(DEFAULT_GROUP);
+                user.getGroups().add(group);
+                operationsService.save(group);
+                for (Privilege priv : Privilege.values()) {
+                    GroupPrivilege groupPriv = new GroupPrivilege(group.getId(), priv.name());
+                    group.getGroupPrivileges().add(groupPriv);
+                    operationsService.save(groupPriv);
+                }
+            }
+
+            UserGroup userGroup = new UserGroup(user.getId(), group.getId());
+            operationsService.save(userGroup);
+        }
+        appCtx.setUser(user);
+        login(user);
+        initMenu();
+    }
+
+    protected void login(User user) {        
         appSession.setUser(user);
         AppSession.addAppSession(appSession);
+    }
+    
+    protected void initMenu() {
         WebApplicationContext ctx = getWebApplicationContext();
+        User user = appSession.getUser();
 
         VerticalLayout root = new VerticalLayout();
         root.setSizeFull();
@@ -296,11 +299,12 @@ public class AppUI extends UI implements LoginListener {
         appCtx.setUser(user);
         
         appCtx.getConfigurationService().save(new AuditEvent(EventType.LOGIN, "Logged in", user.getLoginId()));
+        user.setLastLoginTime(new Date());
+        user.setFailedLogins(0);
+        appCtx.getOperationsService().save(user);
+        getViewManager().init(this, contentArea);
 
-        viewManager = ctx.getBean(ViewManager.class);
-        viewManager.init(this, contentArea);
-
-        TopBar menu = new TopBar(viewManager, appCtx);
+        TopBar menu = new TopBar(getViewManager(), appCtx);
 
         HorizontalLayout bottom = new HorizontalLayout();
         bottom.addStyleName(ValoTheme.LAYOUT_WELL);
@@ -324,4 +328,7 @@ public class AppUI extends UI implements LoginListener {
         root.setExpandRatio(contentArea, 1);
     }
 
+    protected ViewManager getViewManager() {
+        return getWebApplicationContext().getBean(ViewManager.class);
+    }
 }

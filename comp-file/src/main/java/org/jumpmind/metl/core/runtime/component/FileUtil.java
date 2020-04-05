@@ -121,6 +121,7 @@ public class FileUtil extends AbstractComponentRuntime {
 			ArrayList<String> filesProcessed = new ArrayList<>();
 			if (files != null) {
 				for (String fileName : files) {
+					fileName = resolveParamsAndHeaders(fileName, inputMessage);
 					try {
 						if (fileName != null) {
 							String targetFile = null;
@@ -231,9 +232,19 @@ public class FileUtil extends AbstractComponentRuntime {
         String fileName = (tokenResolvedName != null ? tokenResolvedName : sourceFile.getName());
         if (tokenResolvedAppendToName != null && tokenResolvedAppendToName.length() > 0) {
             String[] parts = fileName.split("\\.");
+        	StringBuffer sb = new StringBuffer();
             if (parts.length > 1) {
-                StringBuffer sb = new StringBuffer().append(parts[0]).append(tokenResolvedAppendToName).append(".").append(parts[1]);
+            	int n = 0;
+            	while (n < parts.length - 1) {
+            		sb.append(parts[n]).append(".");
+            		n++;
+            	}
+            	sb.deleteCharAt(sb.length() - 1);  // delete final '.' added before appending provided text
+            	sb.append(tokenResolvedAppendToName).append(".").append(parts[n]);
                 fileName = sb.toString();
+            } else if (parts.length == 1) {
+            	sb.append(parts[0]).append(tokenResolvedAppendToName);
+            	fileName = sb.toString();
             }
         }
         return fileName;

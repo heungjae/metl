@@ -1,3 +1,23 @@
+/**
+ * Licensed to JumpMind Inc under one or more contributor
+ * license agreements.  See the NOTICE file distributed
+ * with this work for additional information regarding
+ * copyright ownership.  JumpMind Inc licenses this file
+ * to you under the GNU General Public License, version 3.0 (GPLv3)
+ * (the "License"); you may not use this file except in compliance
+ * with the License.
+ *
+ * You should have received a copy of the GNU General Public License,
+ * version 3.0 (GPLv3) along with this library; if not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.jumpmind.metl.core.runtime.component;
 
 import java.io.IOException;
@@ -10,7 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
@@ -19,15 +41,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jumpmind.exception.IoException;
 import org.jumpmind.metl.core.model.ComponentAttribSetting;
-import org.jumpmind.metl.core.model.Model;
+import org.jumpmind.metl.core.model.RelationalModel;
 import org.jumpmind.metl.core.runtime.ControlMessage;
 import org.jumpmind.metl.core.runtime.EntityData;
 import org.jumpmind.metl.core.runtime.Message;
 import org.jumpmind.metl.core.runtime.MisconfiguredException;
 import org.jumpmind.metl.core.runtime.flow.ISendMessageCallback;
 import org.jumpmind.properties.TypedProperties;
-
-import net.sf.saxon.value.DecimalValue;
 
 public class ExcelFileReader extends AbstractFileReader {
 
@@ -49,7 +69,7 @@ public class ExcelFileReader extends AbstractFileReader {
 
     boolean ignoreError = false;
     
-    Model outputModel;
+    RelationalModel outputModel;
 
     Set<String> worsheetsToRead;
 
@@ -58,7 +78,7 @@ public class ExcelFileReader extends AbstractFileReader {
     @Override
     public void start() {
         init();
-        outputModel = this.getOutputModel();
+        outputModel = (RelationalModel) this.getOutputModel();
         TypedProperties properties = getTypedProperties();
         rowsPerMessage = properties.getInt(SETTING_ROWS_PER_MESSAGE, rowsPerMessage);
         headerLinesToSkip = properties.getInt(SETTING_HEADER_LINES_TO_SKIP, headerLinesToSkip);
@@ -117,19 +137,23 @@ public class ExcelFileReader extends AbstractFileReader {
     private void processFiles(List<String> files, Message inputMessage,
             ISendMessageCallback callback, boolean unitOfWorkLastMessage) {
 
+    	boolean oldExcelFormat = false;
         filesRead.addAll(files);
 
         for (String file : files) {
             Map<String, Serializable> headers = new HashMap<>(1);
-            headers.put("source.file.path", file);
 
             InputStream inStream = null;
             try {
-                info("Reading file: %s", file);
                 String filePath = resolveParamsAndHeaders(file, inputMessage);
+                if ("xls".equals(FilenameUtils.getExtension(filePath))) {
+                    oldExcelFormat = true;
+                }
+                info("Reading file: %s", filePath);
+                headers.put("source.file.path", filePath);
                 inStream = directory.getInputStream(filePath, mustExist);
                 if (inStream != null) {
-                    readWorkbook(headers, inStream, callback);
+                    readWorkbook(headers, inStream, callback, oldExcelFormat);
                 }
             } catch (IOException e) {
                 throw new IoException("Error reading from file " + e.getMessage());
@@ -144,13 +168,19 @@ public class ExcelFileReader extends AbstractFileReader {
 
     @SuppressWarnings("deprecation")
     private void readWorkbook(Map<String, Serializable> headers, InputStream inStream,
-            ISendMessageCallback callback) throws IOException {
+            ISendMessageCallback callback, boolean oldExcelFormat) throws IOException {
 
         int linesInMessage = 0;
         ArrayList<EntityData> outboundPayload = new ArrayList<EntityData>();
         int currentFileLinesRead = 1;
 
-        Workbook wb = new XSSFWorkbook(inStream);
+        Workbook wb = null;
+        if (oldExcelFormat) {
+        	wb = new HSSFWorkbook(inStream);
+        } else {
+        	wb = new XSSFWorkbook(inStream);
+        }
+        
         try {
         for (int i = 0; i < wb.getNumberOfSheets(); i++) {
             Sheet sheet = wb.getSheetAt(i);

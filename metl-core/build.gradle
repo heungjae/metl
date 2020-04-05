@@ -1,4 +1,5 @@
 apply from: '../metl-assemble/common.gradle'
+version = origVersion
 
 configurations {
     jaxbConfig
@@ -46,6 +47,7 @@ dependencies {
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion"  
     compile group: 'net.sf.saxon', name: 'saxon', version: '9.1.0.8'
     compile "com.jcraft:jsch:0.1.54"
+	compile "org.bouncycastle:bcprov-jdk15on:1.61"
     compile "oauth.signpost:oauth-signpost:1.2.1.2"    
     compile "org.apache.ant:ant:$antVersion"
     compile "javax.jms:javax.jms-api:2.0.1"    
@@ -67,6 +69,8 @@ dependencies {
         exclude group: 'xerces'
     }
     compile "org.jgrapht:jgrapht-core:1.0.1"
+    compile "javax.xml.bind:jaxb-api:2.4.0-b180830.0359"
+    compile "org.glassfish.jaxb:jaxb-runtime:2.4.0-b180830.0438"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
     testCompile "org.powermock:powermock-api-mockito:$powerMockVersion"
     testCompile "org.powermock:powermock-module-junit4:$powerMockVersion"    

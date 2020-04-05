@@ -1,3 +1,23 @@
+/**
+ * Licensed to JumpMind Inc under one or more contributor
+ * license agreements.  See the NOTICE file distributed
+ * with this work for additional information regarding
+ * copyright ownership.  JumpMind Inc licenses this file
+ * to you under the GNU General Public License, version 3.0 (GPLv3)
+ * (the "License"); you may not use this file except in compliance
+ * with the License.
+ *
+ * You should have received a copy of the GNU General Public License,
+ * version 3.0 (GPLv3) along with this library; if not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.jumpmind.metl.ui.views.design;
 
 import java.io.Serializable;
@@ -6,24 +26,24 @@ import java.util.Comparator;
 
 import org.apache.commons.lang.StringUtils;
 import org.jumpmind.metl.core.model.ComponentAttribSetting;
-import org.jumpmind.metl.core.model.Model;
 import org.jumpmind.metl.core.model.ModelAttrib;
 import org.jumpmind.metl.core.model.ModelEntity;
+import org.jumpmind.metl.core.model.RelationalModel;
 import org.jumpmind.metl.core.runtime.component.ExcelFileReader;
 
-import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.data.util.filter.And;
-import com.vaadin.data.util.filter.Compare;
-import com.vaadin.data.util.filter.IsNull;
-import com.vaadin.data.util.filter.Not;
-import com.vaadin.data.util.filter.SimpleStringFilter;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.HeaderCell;
-import com.vaadin.ui.Grid.HeaderRow;
-import com.vaadin.ui.Grid.SelectionMode;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.v7.data.util.BeanItemContainer;
+import com.vaadin.v7.data.util.filter.And;
+import com.vaadin.v7.data.util.filter.Compare;
+import com.vaadin.v7.data.util.filter.IsNull;
+import com.vaadin.v7.data.util.filter.Not;
+import com.vaadin.v7.data.util.filter.SimpleStringFilter;
+import com.vaadin.v7.ui.CheckBox;
+import com.vaadin.v7.ui.Grid;
+import com.vaadin.v7.ui.Grid.HeaderCell;
+import com.vaadin.v7.ui.Grid.HeaderRow;
+import com.vaadin.v7.ui.Grid.SelectionMode;
+import com.vaadin.v7.ui.TextField;
 
 public class EditExcelReaderPanel extends AbstractComponentEditPanel {
 
@@ -179,7 +199,7 @@ public class EditExcelReaderPanel extends AbstractComponentEditPanel {
     }
     
     protected void refresh() {
-        Model model = component.getOutputModel();
+        RelationalModel model = (RelationalModel) component.getOutputModel();
         if (model != null) {
             Collections.sort(model.getModelEntities(), new Comparator<ModelEntity>() {
                 public int compare(ModelEntity entity1, ModelEntity entity2) {

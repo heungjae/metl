@@ -30,13 +30,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.jumpmind.metl.core.model.ComponentAttribSetting;
-import org.jumpmind.metl.core.model.DataType;
-import org.jumpmind.metl.core.model.Model;
 import org.jumpmind.metl.core.model.ModelAttrib;
 import org.jumpmind.metl.core.model.ModelEntity;
+import org.jumpmind.metl.core.model.RelationalModel;
 import org.jumpmind.metl.core.runtime.component.ModelAttributeScriptHelper;
 import org.jumpmind.metl.core.runtime.component.Transformer;
 import org.jumpmind.metl.ui.common.ButtonBar;
+import org.jumpmind.metl.ui.common.TableV7DataProvider;
 import org.jumpmind.metl.ui.common.UiUtils;
 import org.jumpmind.vaadin.ui.common.CommonUiUtils;
 import org.jumpmind.vaadin.ui.common.ExportDialog;
@@ -44,25 +44,26 @@ import org.jumpmind.vaadin.ui.common.ResizableWindow;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
 
-import com.vaadin.data.Container;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.data.HasValue;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.AbstractSelect;
-import com.vaadin.ui.AbstractTextField.TextChangeEventMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.TableFieldFactory;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
+import com.vaadin.v7.data.Container;
+import com.vaadin.v7.data.Property.ValueChangeEvent;
+import com.vaadin.v7.data.Property.ValueChangeListener;
+import com.vaadin.v7.data.util.BeanItemContainer;
+import com.vaadin.v7.event.FieldEvents.TextChangeEvent;
+import com.vaadin.v7.event.FieldEvents.TextChangeListener;
+import com.vaadin.v7.ui.AbstractSelect;
+import com.vaadin.v7.ui.AbstractTextField.TextChangeEventMode;
+import com.vaadin.v7.ui.ComboBox;
+import com.vaadin.v7.ui.Field;
+import com.vaadin.v7.ui.Table;
+import com.vaadin.v7.ui.Table.ColumnGenerator;
+import com.vaadin.v7.ui.TableFieldFactory;
+import com.vaadin.v7.ui.TextField;
 
 @SuppressWarnings("serial")
 public class EditTransformerPanel extends AbstractComponentEditPanel {
@@ -94,7 +95,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
         filterPopField.addItem(SHOW_POPULATED_ENTITIES);
         filterPopField.addItem(SHOW_POPULATED_ATTRIBUTES);
         if (component.getInputModel() != null) {
-            for (ModelEntity entity : component.getInputModel().getModelEntities()) {
+            for (ModelEntity entity : ((RelationalModel)component.getInputModel()).getModelEntities()) {
                 filterPopField.addItem(entity.getName());
             }
         }
@@ -133,7 +134,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
             @Override
             public Object generateCell(Table source, Object itemId, Object columnId) {
                 ComponentAttribSetting setting = (ComponentAttribSetting) itemId;
-                Model model = component.getInputModel();
+                RelationalModel model = (RelationalModel) component.getInputModel();
                 ModelAttrib attribute = model.getAttributeById(setting.getAttributeId());
                 ModelEntity entity = model.getEntityById(attribute.getEntityId());
                 return UiUtils.getName(filterField.getValue(), entity.getName());
@@ -144,7 +145,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
             @Override
             public Object generateCell(Table source, Object itemId, Object columnId) {
                 ComponentAttribSetting setting = (ComponentAttribSetting) itemId;
-                Model model = component.getInputModel();
+                RelationalModel model = (RelationalModel) component.getInputModel();
                 ModelAttrib attribute = model.getAttributeById(setting.getAttributeId());
                 return UiUtils.getName(filterField.getValue(), attribute.getName());
             }
@@ -178,7 +179,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
             componentAttributes = component.getAttributeSettings();
             removeDeadAttributeSettings();
 
-            for (ModelEntity entity : component.getInputModel().getModelEntities()) {
+            for (ModelEntity entity : ((RelationalModel)component.getInputModel()).getModelEntities()) {
                 for (ModelAttrib attr : entity.getModelAttributes()) {
                     boolean found = false;
                     for (ComponentAttribSetting componentAttribute : componentAttributes) {
@@ -188,8 +189,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
                             break;
                         }
                     }
-                    if (!found && !attr.getDataType().equals(DataType.REF)
-                    		& !attr.getDataType().equals(DataType.ARRAY)) {
+                    if (!found) {
                         componentAttributes
                                 .add(new ComponentAttribSetting(attr.getId(), component.getId(), Transformer.TRANSFORM_EXPRESSION, null));
                     }
@@ -199,7 +199,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
             Collections.sort(componentAttributes, new Comparator<ComponentAttribSetting>() {
                 @Override
                 public int compare(ComponentAttribSetting o1, ComponentAttribSetting o2) {
-                    Model model = component.getInputModel();
+                    RelationalModel model = (RelationalModel) component.getInputModel();
                     ModelAttrib attribute1 = model.getAttributeById(o1.getAttributeId());
                     ModelEntity entity1 = model.getEntityById(attribute1.getEntityId());
 
@@ -225,7 +225,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
     protected void removeDeadAttributeSettings() {
         List<ComponentAttribSetting> toRemove = new ArrayList<ComponentAttribSetting>();
         for (ComponentAttribSetting componentAttribute : componentAttributes) {
-            Model model = component.getInputModel();
+            RelationalModel model = (RelationalModel) component.getInputModel();
             ModelAttrib attribute1 = model.getAttributeById(componentAttribute.getAttributeId());
             if (attribute1 == null) {
                 /*
@@ -258,7 +258,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
         }
 
         if (componentAttributes != null) {
-            Model model = component.getInputModel();
+            RelationalModel model = (RelationalModel) component.getInputModel();
             Collection<String> entityNames = new ArrayList<>();
 
             filter = filter != null ? filter.toLowerCase() : null;
@@ -296,7 +296,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
         exportTable.removeAllItems();
         updateExportTable(filterField.getValue());
         String fileNamePrefix = component.getName().toLowerCase().replace(' ', '-');
-        ExportDialog dialog = new ExportDialog(exportTable, fileNamePrefix, component.getName());
+        ExportDialog dialog = new ExportDialog(new TableV7DataProvider(exportTable), fileNamePrefix, component.getName());
         UI.getCurrent().addWindow(dialog);
     }
 
@@ -305,7 +305,7 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
         boolean showPopulatedAttributes = filterPopField.getValue().equals(SHOW_POPULATED_ATTRIBUTES);
 
         if (componentAttributes != null) {
-            Model model = component.getInputModel();
+            RelationalModel model = (RelationalModel) component.getInputModel();
             Collection<String> entityNames = new ArrayList<>();
 
             filter = filter != null ? filter.toLowerCase() : null;
@@ -468,18 +468,15 @@ public class EditTransformerPanel extends AbstractComponentEditPanel {
             
             
             editor = CommonUiUtils.createAceEditor();
-            editor.setTextChangeEventMode(TextChangeEventMode.LAZY);
-            editor.setTextChangeTimeout(200);
             editor.setMode(AceMode.java);
             
-            editor.addTextChangeListener(new TextChangeListener() {
+            editor.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
 
-                @Override
-                public void textChange(TextChangeEvent event) {
-                    setting.setValue(event.getText());
-                    EditTransformerPanel.this.context.getConfigurationService()
-                            .save(setting);
-                }
+    			@Override
+    			public void valueChange(HasValue.ValueChangeEvent<String> event) {
+    				setting.setValue(event.getValue());
+    				EditTransformerPanel.this.context.getConfigurationService().save(setting);
+    			}
             });
             editor.setValue(setting.getValue());
             

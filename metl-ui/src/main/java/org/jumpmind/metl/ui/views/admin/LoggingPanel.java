@@ -28,47 +28,49 @@ import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jumpmind.metl.core.util.LogUtils;
-import org.jumpmind.metl.ui.common.ApplicationContext;
 import org.jumpmind.metl.ui.common.IBackgroundRefreshable;
-import org.jumpmind.metl.ui.common.TabbedPanel;
 import org.jumpmind.metl.ui.init.BackgroundRefresherService;
 import org.jumpmind.vaadin.ui.common.CommonUiUtils;
-import org.jumpmind.vaadin.ui.common.IUiPanel;
+import org.jumpmind.vaadin.ui.common.UiComponent;
+import org.springframework.core.annotation.Order;
 
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractTextField.TextChangeEventMode;
+import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.v7.data.Property.ValueChangeEvent;
+import com.vaadin.v7.data.Property.ValueChangeListener;
+import com.vaadin.v7.shared.ui.label.ContentMode;
+import com.vaadin.v7.ui.AbstractTextField.TextChangeEventMode;
+import com.vaadin.v7.ui.CheckBox;
+import com.vaadin.v7.ui.HorizontalLayout;
+import com.vaadin.v7.ui.Label;
+import com.vaadin.v7.ui.TextField;
 
 @SuppressWarnings("serial")
-public class LoggingPanel extends VerticalLayout implements IUiPanel, IBackgroundRefreshable<Object> {
-
-    ApplicationContext context;
+@UiComponent
+@UIScope
+@Order(1300)
+@AdminMenuLink(name = "Logging", id = "Logging", icon = FontAwesome.FILE_TEXT_O)
+public class LoggingPanel extends AbstractAdminPanel implements IBackgroundRefreshable<Object> {
 
     BackgroundRefresherService backgroundRefresherService;
-
-    TabbedPanel tabbedPanel;
 
     TextField bufferSize;
 
@@ -82,9 +84,12 @@ public class LoggingPanel extends VerticalLayout implements IUiPanel, IBackgroun
 
     File logFile;
 
-    public LoggingPanel(ApplicationContext context, TabbedPanel tabbedPanel) {
-        this.context = context;
-        this.tabbedPanel = tabbedPanel;
+    public LoggingPanel() {
+    }
+    
+    @PostConstruct
+    @Override
+    public void init() {
         this.backgroundRefresherService = context.getBackgroundRefresherService();
         if (LogUtils.isFileEnabled()) {
             logFile = new File(LogUtils.getLogFilePath());
@@ -272,5 +277,9 @@ public class LoggingPanel extends VerticalLayout implements IUiPanel, IBackgroun
     @Override
     public void onUIError(Throwable ex) {
         CommonUiUtils.notify(ex);
+    }
+
+    @Override
+    public void enter(ViewChangeEvent event) {
     }
 }

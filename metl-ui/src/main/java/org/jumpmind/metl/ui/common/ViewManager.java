@@ -32,22 +32,25 @@ import java.util.Map;
 
 import org.jumpmind.metl.ui.init.AppUI;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.ComponentContainer;
 
 @Component
-@Scope(value="ui")
+@UIScope
 public class ViewManager implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Autowired(required = false)
     List<View> views;
+    
+    @Autowired
+    List<TopBarButton> topBarButtons;
 
     Navigator navigator;
     
@@ -59,13 +62,24 @@ public class ViewManager implements Serializable {
     public void init(AppUI ui, ComponentContainer container) {
         navigator = new Navigator(ui, container);
         navigator.setErrorView(new PageNotFoundView(this));
+        List<View> filteredViews = new ArrayList<View>();
         if (views != null) {
             for (View view : views) {
                 TopBarLink menu = (TopBarLink) view.getClass().getAnnotation(TopBarLink.class);
                 if (menu != null && menu.uiClass().equals(AppUI.class)) {
-                    navigator.addView(menu.id(), view);
+                    if (view instanceof TopView) {
+                        if (((TopView)view).isAccessible()) {
+                            navigator.addView(menu.id(), view);
+                            filteredViews.add(view);
+                        }
+                    } else {
+                        navigator.addView(menu.id(), view);
+                        filteredViews.add(view);
+                    }
                 }
             }
+            views.clear();
+            views.addAll(filteredViews);
         }
     }
     
@@ -124,4 +138,15 @@ public class ViewManager implements Serializable {
         defaultView = menuId;
     }
 
+    public List<TopBarButton> getTopBarButtons() {
+        return topBarButtons;
+    }
+
+    protected Navigator getNavigator() {
+        return this.navigator;
+    }
+    
+    protected List<View> getViews() {
+        return this.views;
+    }
 }

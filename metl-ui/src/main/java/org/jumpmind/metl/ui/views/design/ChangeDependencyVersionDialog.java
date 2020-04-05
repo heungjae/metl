@@ -1,3 +1,23 @@
+/**
+ * Licensed to JumpMind Inc under one or more contributor
+ * license agreements.  See the NOTICE file distributed
+ * with this work for additional information regarding
+ * copyright ownership.  JumpMind Inc licenses this file
+ * to you under the GNU General Public License, version 3.0 (GPLv3)
+ * (the "License"); you may not use this file except in compliance
+ * with the License.
+ *
+ * You should have received a copy of the GNU General Public License,
+ * version 3.0 (GPLv3) along with this library; if not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.jumpmind.metl.ui.views.design;
 
 import java.util.List;
@@ -10,19 +30,19 @@ import org.jumpmind.vaadin.ui.common.ResizableWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vaadin.data.Item;
-import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.event.ShortcutAction.KeyCode;
-import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.v7.data.Item;
+import com.vaadin.v7.data.util.IndexedContainer;
+import com.vaadin.v7.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.v7.ui.OptionGroup;
 
 public class ChangeDependencyVersionDialog extends ResizableWindow  {
 

@@ -28,9 +28,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jumpmind.metl.core.model.DataType;
-import org.jumpmind.metl.core.model.Model;
 import org.jumpmind.metl.core.model.ModelAttrib;
 import org.jumpmind.metl.core.model.ModelEntity;
+import org.jumpmind.metl.core.model.RelationalModel;
 import org.jumpmind.metl.core.model.Setting;
 import org.jumpmind.metl.core.runtime.EntityData;
 import org.jumpmind.metl.core.runtime.component.XsltProcessor;
@@ -39,17 +39,18 @@ import org.jumpmind.vaadin.ui.common.ResizableWindow;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
 
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.data.HasValue;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalSplitPanel;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.v7.event.FieldEvents.TextChangeEvent;
+import com.vaadin.v7.event.FieldEvents.TextChangeListener;
+import com.vaadin.v7.ui.Label;
+import com.vaadin.v7.ui.TextArea;
+import com.vaadin.v7.ui.TextField;
+import com.vaadin.v7.ui.VerticalLayout;
 
 @SuppressWarnings({ "serial" })
 public class EditXsltPanel extends AbstractComponentEditPanel implements TextChangeListener {
@@ -86,7 +87,7 @@ public class EditXsltPanel extends AbstractComponentEditPanel implements TextCha
         editor.setSizeFull();
         editor.setHighlightActiveLine(true);
         editor.setShowPrintMargin(false);
-        editor.addTextChangeListener(new StylesheetChangeListener());
+        editor.addValueChangeListener(new StylesheetChangeListener());
         editor.setValue(component.findSetting(XsltProcessor.XSLT_PROCESSOR_STYLESHEET).getValue());
         leftLayout.addComponent(new Label("XSLT Stylesheet"));
         leftLayout.addComponent(editor);
@@ -137,7 +138,7 @@ public class EditXsltPanel extends AbstractComponentEditPanel implements TextCha
 
 
     protected String getSampleXml() {
-        Model model = component.getInputModel();
+        RelationalModel model = (RelationalModel) component.getInputModel();
         String batchXml = "";
         if (model != null) {
             ArrayList<EntityData> inputRows = new ArrayList<EntityData>();
@@ -168,10 +169,10 @@ public class EditXsltPanel extends AbstractComponentEditPanel implements TextCha
         List<ModelEntity> entities = new ArrayList<ModelEntity>();
         if (component.getInputModel() != null) {
             if (StringUtils.isEmpty(filter)) {
-                entities.addAll(component.getInputModel().getModelEntities());
+                entities.addAll(((RelationalModel)component.getInputModel()).getModelEntities());
             } else {
                 String filterText = filter.toUpperCase();
-                for (ModelEntity entity : component.getInputModel().getModelEntities()) {
+                for (ModelEntity entity : ((RelationalModel)component.getInputModel()).getModelEntities()) {
                     if (entity.getName().toUpperCase().indexOf(filterText) != -1) {
                         entities.add(entity);
                         continue;
@@ -188,8 +189,8 @@ public class EditXsltPanel extends AbstractComponentEditPanel implements TextCha
         return entities;
     }
 
-    class StylesheetChangeListener implements TextChangeListener {
-        public void textChange(TextChangeEvent event) {
+    class StylesheetChangeListener implements HasValue.ValueChangeListener<String> {
+        public void valueChange(HasValue.ValueChangeEvent<String> event) {
             Setting stylesheet = component.findSetting(XsltProcessor.XSLT_PROCESSOR_STYLESHEET);
             stylesheet.setValue(editor.getValue());
             context.getConfigurationService().save(component);

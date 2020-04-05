@@ -47,10 +47,11 @@ import org.jumpmind.metl.ui.init.BackgroundRefresherService;
 import org.jumpmind.metl.ui.persist.IUICache;
 import org.jumpmind.vaadin.ui.common.UiComponent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+
+import com.vaadin.spring.annotation.UIScope;
 
 @UiComponent
-@Scope(value = "ui")
+@UIScope
 public class ApplicationContext implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -98,7 +99,7 @@ public class ApplicationContext implements Serializable {
     ISecurityService securityService;
     
     @Autowired
-    IOperationsService operationsSerivce;
+    IOperationsService operationsService;
     
     @Autowired
     IPluginService pluginService;
@@ -198,8 +199,8 @@ public class ApplicationContext implements Serializable {
         this.clipboard = clipboard;
     }
     
-    public IOperationsService getOperationsSerivce() {
-        return operationsSerivce;
+    public IOperationsService getOperationsService() {
+        return operationsService;
     }
     
     public IPluginService getPluginService() {

@@ -1,3 +1,23 @@
+/**
+ * Licensed to JumpMind Inc under one or more contributor
+ * license agreements.  See the NOTICE file distributed
+ * with this work for additional information regarding
+ * copyright ownership.  JumpMind Inc licenses this file
+ * to you under the GNU General Public License, version 3.0 (GPLv3)
+ * (the "License"); you may not use this file except in compliance
+ * with the License.
+ *
+ * You should have received a copy of the GNU General Public License,
+ * version 3.0 (GPLv3) along with this library; if not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.jumpmind.metl.ui.common;
 
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -11,20 +31,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vaadin.event.ShortcutAction.KeyCode;
+import com.vaadin.server.Sizeable.Unit;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.Upload;
-import com.vaadin.ui.Upload.FinishedEvent;
-import com.vaadin.ui.Upload.Receiver;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.v7.ui.HorizontalLayout;
+import com.vaadin.v7.ui.Label;
+import com.vaadin.v7.ui.ProgressBar;
+import com.vaadin.v7.ui.Upload;
+import com.vaadin.v7.ui.Upload.FinishedEvent;
+import com.vaadin.v7.ui.Upload.Receiver;
+import com.vaadin.v7.ui.VerticalLayout;
 
 public class ImportDialog extends Window {
 

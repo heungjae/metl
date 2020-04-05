@@ -35,9 +35,9 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.input.sax.XMLReaders;
 import org.jumpmind.metl.core.model.ComponentAttribSetting;
 import org.jumpmind.metl.core.model.ComponentEntitySetting;
-import org.jumpmind.metl.core.model.Model;
 import org.jumpmind.metl.core.model.ModelAttrib;
 import org.jumpmind.metl.core.model.ModelEntity;
+import org.jumpmind.metl.core.model.RelationalModel;
 import org.jumpmind.metl.core.model.Setting;
 import org.jumpmind.metl.core.runtime.component.XPathXmlParser;
 import org.jumpmind.metl.core.runtime.component.XmlFormatter;
@@ -45,30 +45,31 @@ import org.jumpmind.metl.core.runtime.component.XmlParser;
 import org.jumpmind.metl.ui.common.ButtonBar;
 import org.jumpmind.metl.ui.views.design.ImportXmlTemplateWindow.ImportXmlListener;
 import org.jumpmind.vaadin.ui.common.ExportDialog;
+import org.jumpmind.vaadin.ui.common.Grid7DataProvider;
 import org.jumpmind.vaadin.ui.common.ResizableWindow;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
 
-import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.data.util.filter.And;
-import com.vaadin.data.util.filter.Compare;
-import com.vaadin.data.util.filter.IsNull;
-import com.vaadin.data.util.filter.Not;
-import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.HeaderCell;
-import com.vaadin.ui.Grid.HeaderRow;
-import com.vaadin.ui.Grid.SelectionMode;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.v7.data.util.BeanItemContainer;
+import com.vaadin.v7.data.util.filter.And;
+import com.vaadin.v7.data.util.filter.Compare;
+import com.vaadin.v7.data.util.filter.IsNull;
+import com.vaadin.v7.data.util.filter.Not;
+import com.vaadin.v7.data.util.filter.SimpleStringFilter;
+import com.vaadin.v7.shared.ui.combobox.FilteringMode;
+import com.vaadin.v7.ui.CheckBox;
+import com.vaadin.v7.ui.ComboBox;
+import com.vaadin.v7.ui.Grid;
+import com.vaadin.v7.ui.Grid.HeaderCell;
+import com.vaadin.v7.ui.Grid.HeaderRow;
+import com.vaadin.v7.ui.Grid.SelectionMode;
+import com.vaadin.v7.ui.TextField;
 
 public class EditXmlFormatPanel extends AbstractComponentEditPanel {
 
@@ -101,7 +102,7 @@ public class EditXmlFormatPanel extends AbstractComponentEditPanel {
 
     protected void export() {
         String fileNamePrefix = component.getName().toLowerCase().replace(' ', '-');
-        ExportDialog dialog = new ExportDialog(grid, fileNamePrefix, component.getName());
+        ExportDialog dialog = new ExportDialog(new Grid7DataProvider(grid), fileNamePrefix, component.getName());
         UI.getCurrent().addWindow(dialog);
     }
 
@@ -136,17 +137,17 @@ public class EditXmlFormatPanel extends AbstractComponentEditPanel {
     }
 
     protected void refresh() {
-        Model model = null;
+        RelationalModel model = null;
         // View is used by multiple components.
         // What model does the component use?
         if (component.getType().equals(XmlParser.TYPE)) {
-            model = component.getOutputModel();
+            model = (RelationalModel) component.getOutputModel();
         } else if (component.getType().equals(XPathXmlParser.TYPE)) {
-            model = component.getOutputModel();
+            model = (RelationalModel) component.getOutputModel();
         } else if (component.getType().equals(XmlFormatter.TYPE)){
-            model = component.getInputModel();
+            model = (RelationalModel) component.getInputModel();
         } else {
-            model = component.getInputModel();
+            model = (RelationalModel) component.getInputModel();
         }
         
         if (model != null) {
@@ -312,7 +313,6 @@ public class EditXmlFormatPanel extends AbstractComponentEditPanel {
             content.setMargin(true);
 
             editor = new AceEditor();
-            editor.setImmediate(true);
             editor.setMode(AceMode.xml);
             editor.setSizeFull();
             editor.setHighlightActiveLine(true);
